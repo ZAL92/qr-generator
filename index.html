@@ -4,37 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>نظام توليد بطاقات الدعوة</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<!-- المكتبات البرمجية -->
+<!-- الخطوط والمكتبات البرمجية -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa+Ink:wght@400;700&family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@200;300;400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
   :root{
-    --emerald:#0e3b2e;
-    --emerald-deep:#082921;
-    --gold:#c9a24b;
-    --gold-light:#e8d5a0;
-    --ivory:#f8f3e6;
+    --emerald:#ffffff;
+    --emerald-deep:#f7f1e9;
+    --gold:#a9805a;
+    --gold-light:#c9ab88;
+    --ivory:#5a4433;
+    --maroon:#7a5a3e;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
 
-  /* تغيير خلفية الصفحة للون الأبيض */
+  /* خلفية الصفحة الأساسية بيضاء ونظيفة */
   body{
     background:#ffffff;
     color: #333333;
     min-height:100vh;
     padding:40px 15px;
-    font-family:'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    font-family:'Cairo', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  /* لوحة التحكم والرفع في المنتصف */
+  /* لوحة التحكم والرفع */
   .control-panel {
     width: 100%;
     max-width: 550px;
@@ -43,7 +44,7 @@
     border-radius: 16px;
     padding: 25px;
     text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
     margin-bottom: 40px;
   }
 
@@ -52,16 +53,16 @@
     border-radius: 12px;
     padding: 25px;
     cursor: pointer;
-    background: #faf8f3;
+    background: #fcfaf7;
     margin: 20px 0;
     transition: 0.3s;
   }
   .file-box:hover {
-    background: #f3ede0;
+    background: #f7f1e9;
   }
 
   .btn {
-    background: linear-gradient(135deg, var(--gold), #aa7c11);
+    background: linear-gradient(135deg, var(--gold), var(--maroon));
     color: #ffffff;
     border: none;
     padding: 12px 24px;
@@ -70,12 +71,12 @@
     font-weight: bold;
     cursor: pointer;
     width: 100%;
-    box-shadow: 0 4px 10px rgba(201,162,75,0.3);
+    box-shadow: 0 4px 10px rgba(169,128,90,0.3);
   }
 
   .download-card-btn {
-    background: var(--emerald);
-    color: var(--gold-light);
+    background: var(--maroon);
+    color: #ffffff;
     border: 1px solid var(--gold);
     padding: 10px 20px;
     font-size: 14px;
@@ -87,16 +88,15 @@
     display: inline-block;
   }
   .download-card-btn:hover {
-    background: var(--emerald-deep);
-    color: #ffffff;
+    background: var(--gold);
   }
 
-  /* حاوية البطاقات */
+  /* حاوية عرض البطاقات */
   #cards-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 50px;
+    gap: 40px;
     width: 100%;
   }
 
@@ -106,7 +106,7 @@
     align-items: center;
   }
 
-  /* تصميم قالب البطاقة الفاخرة */
+  /* تصميم البطاقة الفاخر */
   .card{
     position:relative;
     width:520px;
@@ -117,7 +117,8 @@
       linear-gradient(180deg, var(--emerald) 0%, var(--emerald-deep) 100%);
     color:var(--ivory);
     overflow:hidden;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    box-shadow: 0 20px 40px rgba(90,68,51,0.12);
+    border: 1px solid #ece3d6;
     border-radius: 8px;
   }
 
@@ -155,7 +156,7 @@
     flex-direction:column;
     align-items:center;
     justify-content:space-between;
-    padding:40px 30px 30px;
+    padding:38px 30px 28px;
     text-align:center;
   }
 
@@ -163,53 +164,68 @@
     font-family:'Amiri', serif;
     font-size:16px;
     color:var(--gold-light);
+    letter-spacing:1px;
   }
 
   .top-orn{
-    width:70px;
+    width:80px;
     height:auto;
     opacity:0.9;
   }
 
-  .guest-tag {
-    font-family: 'Amiri', serif;
-    color: #e03232;
-    font-size: 15px;
+  .invite-word{
+    font-family:'Aref Ruqaa Ink', serif;
+    font-size:15px;
+    color:var(--gold-light);
+    letter-spacing:2px;
   }
 
   .guest-name-title {
-    font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Aref Ruqaa Ink', serif;
     font-weight: 700;
     font-size: 28px;
-    color: var(--gold);
-    text-shadow: 0 0 10px rgba(201,162,75,0.3);
-    margin-top: 4px;
-    direction: rtl;
+    color: var(--maroon);
+    margin: 2px 0;
+  }
+
+  .names{
+    font-family:'Aref Ruqaa Ink', serif;
+    font-size:32px;
+    line-height:1.2;
+    color:var(--ivory);
+  }
+  .names .amp{
+    display:inline-block;
+    font-family:'Amiri', serif;
+    font-style:italic;
+    font-size:18px;
+    color:var(--gold);
+    margin:0 8px;
   }
 
   .invite-text{
     font-family:'Cairo', sans-serif;
-    font-weight:400;
-    font-size:13px;
+    font-weight:300;
+    font-size:12px;
     line-height:1.8;
     color:var(--gold-light);
-    max-width:340px;
+    max-width:320px;
   }
 
   .qr-wrapper {
     background: #ffffff;
-    padding: 8px;
-    border-radius: 10px;
-    border: 2px solid var(--gold);
+    padding: 6px;
+    border-radius: 8px;
+    border: 1.5px solid var(--gold);
     display: inline-block;
   }
 
   .unique-code {
     font-family: monospace;
     font-size: 11px;
-    color: var(--gold-light);
-    margin-top: 4px;
-    opacity: 0.8;
+    color: var(--gold);
+    margin-top: 3px;
+    opacity: 0.85;
   }
 
   .divider{
@@ -217,26 +233,49 @@
     align-items:center;
     gap:10px;
     width:100%;
-    max-width:240px;
+    max-width:260px;
   }
   .divider .line{flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--gold), transparent);}
-  .divider .diamond{ width:6px;height:6px; background:var(--gold); transform:rotate(45deg); }
+  .divider .diamond{
+    width:7px;height:7px;
+    background:var(--gold);
+    transform:rotate(45deg);
+  }
 
+  .miad-block{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .miad-label{
+    font-family:'Aref Ruqaa Ink', serif;
+    font-size:20px;
+    color:var(--gold);
+  }
   .miad-details{
     display:flex;
-    flex-direction:row;
-    justify-content: center;
-    gap: 15px;
+    flex-direction:column;
+    gap:2px;
     font-family:'Cairo', sans-serif;
-    font-size: 11.5px;
-    color: var(--gold-light);
+  }
+  .miad-details .date{
+    font-size:14px;
+    font-weight:600;
+    color:var(--ivory);
+  }
+  .miad-details .time,
+  .miad-details .venue{
+    font-size:12px;
+    font-weight:300;
+    color:var(--gold-light);
   }
 
   .footer{
     font-family:'Cairo', sans-serif;
     font-size:11px;
     color:var(--gold-light);
-    opacity:0.8;
+    opacity:0.85;
   }
 
   @media print{
@@ -252,28 +291,33 @@
 </head>
 <body>
 
-  <!-- لوحة الرفع الأساسية والوحيدة في البداية -->
+  <!-- شريط التحكم ورفع ملف المدعوين -->
   <div class="control-panel">
-    <h3 style="color: #0e3b2e; font-size: 20px;">✨ نظام توليد بطاقات الدعوة</h3>
-    <p style="font-size: 13px; color: #666; margin-top: 5px;">ارفع ملف Excel لتوليد الدعوات الخاصة بك فوراً</p>
+    <h3 style="color: var(--maroon); font-size: 20px;">✨ نظام توليد بطاقات الدعوة</h3>
+    <p style="font-size: 13px; color: #777; margin-top: 5px;">ارفع ملف Excel لتوليد البطاقات بتصميمك العاجي والذهبي الفاخر</p>
     
     <div class="file-box" onclick="document.getElementById('excelFile').click()">
       <span style="font-size: 32px;">📊</span>
-      <p style="color: #0e3b2e; font-size: 14px; font-weight: bold; margin-top: 8px;">اضغط هنا لرفع ملف Excel الإضافي</p>
+      <p style="color: var(--maroon); font-size: 14px; font-weight: bold; margin-top: 8px;">اضغط هنا لرفع ملف Excel المدعوين</p>
       <input type="file" id="excelFile" accept=".xlsx, .xls" style="display:none" onchange="handleExcelUpload(event)">
     </div>
 
     <button id="printBtn" class="btn" style="display: none;" onclick="window.print()">🖨️ طباعة / حفظ الكل (PDF)</button>
   </div>
 
-  <!-- حاوية عرض البطاقات المرفقة فقط -->
+  <!-- مكان عرض البطاقات المولدة -->
   <div id="cards-container"></div>
 
   <script>
-    // عند فتح الصفحة لا توجد أي بطاقات افتراضية
-    window.onload = function() {
-      document.getElementById('cards-container').innerHTML = "";
-    };
+    // الحصول على تاريخ اليوم تلقائياً بصيغة عربية أنيقة
+    const today = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = today.toLocaleDateString('ar-SA', options);
+
+    // البيانات الافتراضية
+    const groomName = "عبدالرحمن";
+    const brideName = "سارة";
+    const venueName = "قاعة Redson Blue";
 
     function handleExcelUpload(event) {
       const file = event.target.files[0];
@@ -300,9 +344,9 @@
           if (loadedNames.length > 0) {
             renderCards(loadedNames);
             document.getElementById('printBtn').style.display = 'block';
-            alert(`تم رفع الملف وتوليد ${loadedNames.length} بطاقة بنجاح!`);
+            alert(`تم رفع الملف وتوليد ${loadedNames.length} بطاقات بنجاح!`);
           } else {
-            alert("لم نتمكن من العثور على أسماء في العمود الأول لملف Excel.");
+            alert("لم يتم العثور على أسماء في العمود الأول بملف Excel.");
           }
         } catch(err) {
           alert("حدث خطأ أثناء قراءة ملف Excel.");
@@ -323,35 +367,52 @@
       const container = document.getElementById('cards-container');
       const randomHex = Math.random().toString(36).substring(2, 7).toUpperCase();
       const uniqueCode = `INV-${randomHex}-${index}`;
-      const qrData = `دعوة حفل زفاف\nالضيف: ${guestName}\nالكود: ${uniqueCode}`;
+      const qrData = `دعوة حفل زفاف\nالعريس والعروس: ${groomName} & ${brideName}\nالضيف: ${guestName}\nالكود: ${uniqueCode}`;
       const cardId = `card-${index}`;
 
       const cardHtml = `
         <div class="card-wrapper">
           <div class="card" id="${cardId}">
             <div class="frame"></div>
-            <div class="corner tl"><svg viewBox="0 0 64 64" fill="none"><path d="M2 62 C2 30 30 2 62 2" stroke="#c9a24b" stroke-width="1"/><circle cx="2" cy="62" r="3" fill="#c9a24b"/></svg></div>
-            <div class="corner tr"><svg viewBox="0 0 64 64" fill="none"><path d="M2 62 C2 30 30 2 62 2" stroke="#c9a24b" stroke-width="1"/><circle cx="2" cy="62" r="3" fill="#c9a24b"/></svg></div>
-            <div class="corner bl"><svg viewBox="0 0 64 64" fill="none"><path d="M2 62 C2 30 30 2 62 2" stroke="#c9a24b" stroke-width="1"/><circle cx="2" cy="62" r="3" fill="#c9a24b"/></svg></div>
-            <div class="corner br"><svg viewBox="0 0 64 64" fill="none"><path d="M2 62 C2 30 30 2 62 2" stroke="#c9a24b" stroke-width="1"/><circle cx="2" cy="62" r="3" fill="#c9a24b"/></svg></div>
+            
+            <div class="corner tl">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M2 62 C2 30 30 2 62 2" stroke="#a9805a" stroke-width="1"/><path d="M2 46 C2 24 24 2 46 2" stroke="#a9805a" stroke-width="1" opacity="0.6"/><circle cx="2" cy="62" r="3" fill="#a9805a"/></svg>
+            </div>
+            <div class="corner tr">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M2 62 C2 30 30 2 62 2" stroke="#a9805a" stroke-width="1"/><path d="M2 46 C2 24 24 2 46 2" stroke="#a9805a" stroke-width="1" opacity="0.6"/><circle cx="2" cy="62" r="3" fill="#a9805a"/></svg>
+            </div>
+            <div class="corner bl">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M2 62 C2 30 30 2 62 2" stroke="#a9805a" stroke-width="1"/><path d="M2 46 C2 24 24 2 46 2" stroke="#a9805a" stroke-width="1" opacity="0.6"/><circle cx="2" cy="62" r="3" fill="#a9805a"/></svg>
+            </div>
+            <div class="corner br">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M2 62 C2 30 30 2 62 2" stroke="#a9805a" stroke-width="1"/><path d="M2 46 C2 24 24 2 46 2" stroke="#a9805a" stroke-width="1" opacity="0.6"/><circle cx="2" cy="62" r="3" fill="#a9805a"/></svg>
+            </div>
 
             <div class="content">
-              <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
                 <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
                 <svg class="top-orn" viewBox="0 0 100 40" fill="none">
-                  <path d="M0 20 Q25 0 50 20 Q75 40 100 20" stroke="#c9a24b" stroke-width="1"/>
-                  <circle cx="50" cy="20" r="4" fill="#c9a24b"/>
+                  <path d="M0 20 Q25 0 50 20 Q75 40 100 20" stroke="#a9805a" stroke-width="1"/>
+                  <circle cx="50" cy="20" r="4" fill="#a9805a"/>
+                  <circle cx="20" cy="18" r="2" fill="#a9805a" opacity="0.6"/>
+                  <circle cx="80" cy="18" r="2" fill="#a9805a" opacity="0.6"/>
                 </svg>
               </div>
 
-              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                <div class="guest-tag">يتشرف الأهل بدعوة الكريَم/ة</div>
+              <div style="display:flex; flex-direction:column; align-items:center;">
+                <div class="invite-word">دعوة زفاف الكريَم/ة</div>
                 <div class="guest-name-title">${guestName}</div>
               </div>
 
-              <div class="invite-text">
-                لمشاركتهم أفراحهم بمناسبة حفل زفاف نجلهم<br>
-                وحضوركم يزيدنا شرفاً وسروراً
+              <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                <div class="names">
+                  ${groomName} <span class="amp">و</span> ${brideName}
+                </div>
+                <div class="invite-text">
+                  يتشرف الأهل بدعوتكم الكريمة لمشاركتهم أفراحهم<br>
+                  بمناسبة حفل زفافهم السعيد<br>
+                  وحضوركم يزيدنا شرفاً وسروراً
+                </div>
               </div>
 
               <div style="display:flex; flex-direction:column; align-items:center;">
@@ -367,10 +428,13 @@
                 <div class="line"></div>
               </div>
 
-              <div class="miad-details">
-                <span>📅 [اليوم، التاريخ]</span>
-                <span>⏰ [٠٠:٠٠ مساءً]</span>
-                <span>📍 [اسم القاعة]</span>
+              <div class="miad-block">
+                <div class="miad-label">الميعاد</div>
+                <div class="miad-details">
+                  <div class="date">${formattedDate}</div>
+                  <div class="time">الساعة ٠٨:٠٠ مساءً</div>
+                  <div class="venue">${venueName}</div>
+                </div>
               </div>
 
               <div class="footer">بحضوركم تكتمل الفرحة</div>
@@ -385,14 +449,16 @@
 
       container.insertAdjacentHTML('beforeend', cardHtml);
 
+      // رسم كود الـ QR
       new QRious({
         element: document.getElementById(`qr-${index}`),
         value: qrData,
-        size: 110,
+        size: 90,
         level: 'H'
       });
     }
 
+    // حفظ البطاقة كصورة بجودة عالية
     function downloadAsImage(cardId, guestName) {
       const cardElement = document.getElementById(cardId);
       
