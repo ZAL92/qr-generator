@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ماسح الباركود وتسجيل الحضور</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- مكتبة قراءة الباركود عبر الكاميرا -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<!-- مكتبة تصدير ملفات Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+  :root {
+    --primary: #5a4433;
+    --gold: #a9805a;
+    --bg: #faf8f5;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--bg);
+    color: #333;
+    font-family:'Cairo', sans-serif;
+    padding: 30px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  .container {
+    width: 100%;
+    max-width: 480px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(90, 68, 51, 0.08);
+    border: 1px solid #ece3d6;
+    text-align: center;
+  }
+  h2 {
+    color: var(--primary);
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  p.subtitle {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 20px;
+  }
+  
+  #reader {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--gold);
+    margin-bottom: 20px;
+    background: #000;
+  }
+
+  .status-box {
+    padding: 16px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 20px;
+    display: none;
+    line-height: 1.6;
+  }
+  .status-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+  }
+  .status-warning {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+  }
+
+  .stats-summary {
+    display: flex;
+    justify-content: space-around;
+    background: #fcfaf7;
+    border: 1px solid #f0e6d8;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  .stat-item span {
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 16px;
+  }
+
+  .btn {
+    background: linear-gradient(135deg, var(--gold), var(--primary));
+    color: #ffffff;
+    border: none;
+    padding: 14px 20px;
+    font-size: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(169, 128, 90, 0.25);
+    transition: 0.2s;
+  }
+  .btn:hover {
+    opacity: 0.95;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>📷 قارئ الباركود وتسجيل الحضور</h2>
+  <p class="subtitle">وجّه كاميرا الجوال نحو كود الـ QR الموجود على البطاقة</p>
+
+  <!-- نافذة الكاميرا -->
+  <div id="reader"></div>
+
+  <!-- صندوق النتيجة والتنبيهات -->
+  <div id="statusBox" class="status-box"></div>
+
+  <!-- إحصائيات الحضور الحالية -->
+  <div class="stats-summary">
+    <div class="stat-item">المقبولين: <span id="countSuccess">0</span></div>
+    <div class="stat-item">المحاولات المكررة: <span id="countFailed">0</span></div>
+  </div>
+
+  <!-- زر استخراج كشف الحضور Excel -->
+  <button class="btn" onclick="exportAttendanceReport()">📊 تحميل تقرير الحضور (Excel)</button>
+</div>
+
+<script>
+  let attendanceData = JSON.parse(localStorage.getItem('wedding_attendance')) || [];
+  updateStats();
+
+  const html5QrCode = new Html5Qrcode("reader");
+  const config = { fps: 10, qrbox: { width: 230, height: 230 } };
+
+  // تشغيل الكاميرا الخلفية بالجوال تلقائياً
+  html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+    .catch(err => {
+      console.log("لم يتم إعطاء صلاحية الكاميرا أو الجهاز لا يدعمها:", err);
+    });
+
+  function onScanSuccess(decodedText) {
+    // إيقاف مؤقت للكاميرا أثناء عرض النتيجة
+    html5QrCode.pause();
+
+    const timestamp = new Date().toLocaleString('ar-SA');
+    const alreadyScanned = attendanceData.find(item => item.qrCode === decodedText && item.status === 'حاضر (مقبول)');
+    const statusBox = document.getElementById('statusBox');
+
+    if (alreadyScanned) {
+      statusBox.className = "status-box status-warning";
+      statusBox.innerHTML = `⚠️ تنبيه: هذا الباركود مستخدم سابقاً!<br><small style="font-weight:normal;">تاريخ الدخول الأول: ${alreadyScanned.time}</small>`;
+      statusBox.style.display = "block";
+
+      attendanceData.push({
+        qrCode: decodedText,
+        status: 'محاولة دخول مكررة (مرفوض)',
+        time: timestamp
+      });
+    } else {
+      statusBox.className = "status-box status-success";
+      statusBox.innerHTML = `✅ تم تسجيل الحضور بنجاح!<br><small style="font-weight:normal;">${decodedText.replace(/\n/g, ' - ')}</small>`;
+      statusBox.style.display = "block";
+
+      attendanceData.push({
+        qrCode: decodedText,
+        status: 'حاضر (مقبول)',
+        time: timestamp
+      });
+    }
+
+    // حفظ البيانات في ذاكرة المتصفح
+    localStorage.setItem('wedding_attendance', JSON.stringify(attendanceData));
+    updateStats();
+
+    // إعادة تشغيل الماسح بعد ثانيتين ونصف
+    setTimeout(() => {
+      statusBox.style.display = "none";
+      html5QrCode.resume();
+    }, 2500);
+  }
+
+  function updateStats() {
+    const success = attendanceData.filter(i => i.status === 'حاضر (مقبول)').length;
+    const failed = attendanceData.filter(i => i.status === 'محاولة دخول مكررة (مرفوض)').length;
+
+    document.getElementById('countSuccess').innerText = success;
+    document.getElementById('countFailed').innerText = failed;
+  }
+
+  function exportAttendanceReport() {
+    if (attendanceData.length === 0) {
+      alert("لا توجد بيانات حضور مسجلة حتى الآن.");
+      return;
+    }
+
+    const report = attendanceData.map((item, index) => ({
+      "م": index + 1,
+      "تفاصيل الكود والضيف": item.qrCode,
+      "حالة الدخول": item.status,
+      "الوقت والتاريخ": item.time
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(report);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الحضور");
+
+    XLSX.writeFile(workbook, "تقرير_حضور_المدعوين.xlsx");
+  }
+</script>
+</body>
+</html>
