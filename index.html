@@ -190,7 +190,16 @@
 
   <div class="control-panel">
     <h3 style="color: #c9a24b; font-size: 20px;">✨ نظام توليد بطاقات الدعوة</h3>
-    <p style="font-size: 13px; color: #777; margin-top: 5px;">ارفع ملف Excel لتوليد البطاقات فوراً</p>
+    <p style="font-size: 13px; color: #777; margin-top: 5px;">اختر خلفية وارفع ملف Excel لتوليد البطاقات</p>
+
+    <!-- خيار رفع وخلفية الدعوة (تمت إعادته) -->
+    <div class="file-box" onclick="document.getElementById('bgFile').click()">
+      <span style="font-size: 24px;">🖼️</span>
+      <p id="bgStatus" style="color: #c9a24b; font-size: 13px; font-weight: bold; margin-top: 4px;">
+        اضغط لتغيير خلفية الدعوة (اختياري)
+      </p>
+      <input type="file" id="bgFile" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
+    </div>
 
     <!-- رفع ملف Excel -->
     <div class="file-box" onclick="document.getElementById('excelFile').click()">
@@ -205,8 +214,25 @@
   <div id="cards-container"></div>
 
   <script>
-    // امتداد الصورة مطابق لما يوجد لديك في VS Code
+    // امتداد الصورة الافتراضي المطابق لملفك
     let currentBase64Image = 'bg.jpeg'; 
+    let cachedGuestsList = [];
+
+    // دالة تغيير خلفية الدعوة مباشرة
+    function handleBgUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        currentBase64Image = e.target.result;
+        document.getElementById('bgStatus').innerText = "✅ تم تحديث الخلفية بنجاح!";
+        if (cachedGuestsList.length > 0) {
+          renderCards(cachedGuestsList);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
 
     // قراءة ومعالجة ملف الإكسل
     function handleExcelUpload(event) {
@@ -227,7 +253,7 @@
               let name = row[0].toString().trim();
               let count = 1; // الافتراضي شخص واحد
 
-              // التحقق من العمود الثاني لقراءة عدد الضيوف (حد أقصى شخصين فقط)
+              // التحقق من العمود الثاني لقراءة عدد الضيوف (حد أقصى شخصين)
               if (row[1]) {
                 let parsed = parseInt(row[1]);
                 if (!isNaN(parsed)) {
@@ -246,6 +272,7 @@
           });
 
           if (loadedGuests.length > 0) {
+            cachedGuestsList = loadedGuests;
             renderCards(loadedGuests);
             document.getElementById('printBtn').style.display = 'block';
           } else {
@@ -309,8 +336,8 @@
         element: document.getElementById(`qr-${index}`),
         value: uniqueCode,
         size: 300,
-        backgroundAlpha: 0, // خلفية شفافة بالكامل
-        foreground: '#ffffff', // لون الباركود (أبيض ليبرز بشكل أنيق)
+        backgroundAlpha: 0, // شفاف بالكامل
+        foreground: '#ffffff', // لون أبيض أنيق
         level: 'H'
       });
     }
