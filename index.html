@@ -19,7 +19,7 @@
       background: #111111;
       color: #ffffff;
       min-height: 100vh;
-      padding: 40px 15px;
+      padding: 20px 10px;
       font-family: 'Cairo', sans-serif;
       display: flex;
       flex-direction: column;
@@ -35,7 +35,7 @@
       padding: 25px;
       text-align: center;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
 
     .file-box {
@@ -86,28 +86,32 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
+      max-width: 500px;
     }
 
+    /* كارت الدعوة بدون حواف وبالمساحة الكاملة */
     .card {
       position: relative;
-      width: 450px;
-      max-width: 100%;
-      aspect-ratio: 1 / 1.72;
-      background: #222222;
-      border-radius: 8px;
+      width: 100%;
+      aspect-ratio: 1 / 1.77; /* نسبة الشاشة الكاملة لتغطية الصورة */
+      background: #000000;
+      border-radius: 0; /* إلغاء الحواف لملء البطاقة بشكل متكامل */
       overflow: hidden;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.8);
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
+    /* صورة الخلفية مغطية للمساحة بالكامل */
     .bg-img {
       position: absolute;
-      inset: 0;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: cover; /* لضمان ملء الصورة بدون تمطيط أو فراغات */
       z-index: 1;
     }
 
@@ -135,7 +139,7 @@
       letter-spacing: 0.5px;
     }
 
-    /* 2- الباركود بدون خلفية أو فريم (Transparent) */
+    /* 2- الباركود شفاف (Transparent) */
     .qr-box {
       background: transparent;
       padding: 0;
@@ -152,7 +156,7 @@
       filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.7));
     }
 
-    /* 3- بيانات الضيف والأسماء المنسحبة من الإكسل */
+    /* 3- بيانات الضيف */
     .guest-info {
       margin-top: 14px;
       color: #ffffff;
@@ -172,7 +176,7 @@
       color: #ffffff;
     }
 
-    /* 4- عدد الضيوف (حد أقصى شخصين) */
+    /* 4- عدد الضيوف */
     .guest-count { 
       font-size: 16px; 
       font-weight: 700; 
@@ -214,11 +218,9 @@
   <div id="cards-container"></div>
 
   <script>
-    // امتداد الصورة الافتراضي المطابق لملفك
     let currentBase64Image = 'bg.jpeg'; 
     let cachedGuestsList = [];
 
-    // دالة تغيير خلفية الدعوة مباشرة
     function handleBgUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -234,7 +236,6 @@
       reader.readAsDataURL(file);
     }
 
-    // قراءة ومعالجة ملف الإكسل
     function handleExcelUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -251,14 +252,13 @@
           rows.forEach((row) => {
             if (row && row[0]) {
               let name = row[0].toString().trim();
-              let count = 1; // الافتراضي شخص واحد
+              let count = 1;
 
-              // التحقق من العمود الثاني لقراءة عدد الضيوف (حد أقصى شخصين)
               if (row[1]) {
                 let parsed = parseInt(row[1]);
                 if (!isNaN(parsed)) {
                   if (parsed >= 2) {
-                    count = 2; // حد أقصى شخصين فقط
+                    count = 2;
                   } else {
                     count = 1;
                   }
@@ -305,15 +305,12 @@
             <img src="${currentBase64Image}" class="bg-img" alt="Background" crossorigin="anonymous">
 
             <div class="dynamic-overlay">
-              <!-- 1. كلمة بطاقة الدخول قبل الباركود -->
               <div class="entry-title">بطاقة الدخول</div>
               
-              <!-- 2. الباركود بدون خلفية بيضاء (شفاف) -->
               <div class="qr-box">
                 <canvas id="qr-${index}"></canvas>
               </div>
 
-              <!-- 3 & 4. الاسم وعدد الضيوف -->
               <div class="guest-info">
                 <div class="guest-title">المكرمة</div>
                 <div class="guest-name">${guestName}</div>
@@ -331,18 +328,16 @@
 
       container.insertAdjacentHTML('beforeend', cardHtml);
 
-      // إنشاء الـ QR Code بخلفية شفافة (backgroundAlpha: 0)
       new QRious({
         element: document.getElementById(`qr-${index}`),
         value: uniqueCode,
         size: 300,
-        backgroundAlpha: 0, // شفاف بالكامل
-        foreground: '#ffffff', // لون أبيض أنيق
+        backgroundAlpha: 0,
+        foreground: '#ffffff',
         level: 'H'
       });
     }
 
-    // تنزيل البطاقات بصيغة صورة PNG عالية الجودة
     function downloadAsImage(cardId, guestName) {
       const cardElement = document.getElementById(cardId);
       
