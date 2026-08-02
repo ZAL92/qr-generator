@@ -245,13 +245,12 @@
           rows.forEach((row) => {
             if (row && row[0]) {
               let name = row[0].toString().trim();
-              let count = 1; // الافتراضي 1 إذا لم يُكتب شيء
+              let count = 1;
 
-              // --- 💡 التعديل الجوهري: قراءة أعداد الضيوف بلا أي قيود ---
               if (row[1] !== undefined && row[1] !== null) {
                 let parsed = parseInt(row[1], 10);
                 if (!isNaN(parsed) && parsed > 0) {
-                  count = parsed; // قراءة العدد المكتوب بالكامل (1, 2, 3, 4, 5...)
+                  count = parsed;
                 }
               }
 
@@ -285,11 +284,9 @@
 
     function createCard(guestName, guestCount, index) {
       const container = document.getElementById('cards-container');
-      const randomHex = Math.random().toString(36).substring(2, 7).toUpperCase();
       
-      // تشفير كود الدعوة الحقيقي + عدد الضيوف داخل الباركود
-      const uniqueCode = `INV-${randomHex}-${index}`;
-      const qrData = `${uniqueCode}|${guestCount}`; // يسهّل قراءة العدد على الماسح
+      // 💡 التعديل الجوهري هنا: تضمين اسم الضيف الفعلي مباشرة بدلاً من كود INV العشوائي
+      const qrData = `${guestName}|${guestCount}`; 
       const cardId = `card-${index}`;
 
       const cardHtml = `
