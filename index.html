@@ -90,13 +90,12 @@
       max-width: 500px;
     }
 
-    /* كارت الدعوة بدون حواف وبالمساحة الكاملة */
     .card {
       position: relative;
       width: 100%;
-      aspect-ratio: 1 / 1.77; /* نسبة الشاشة الكاملة لتغطية الصورة */
+      aspect-ratio: 1 / 1.77;
       background: #000000;
-      border-radius: 0; /* إلغاء الحواف لملء البطاقة بشكل متكامل */
+      border-radius: 0;
       overflow: hidden;
       box-shadow: 0 15px 35px rgba(0,0,0,0.8);
       display: flex;
@@ -104,18 +103,16 @@
       align-items: center;
     }
 
-    /* صورة الخلفية مغطية للمساحة بالكامل */
     .bg-img {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover; /* لضمان ملء الصورة بدون تمطيط أو فراغات */
+      object-fit: cover;
       z-index: 1;
     }
 
-    /* التنسيق للبيانات فوق الصورة */
     .dynamic-overlay {
       position: absolute;
       top: 40%;
@@ -129,7 +126,6 @@
       text-align: center;
     }
 
-    /* 1- كلمة بطاقة الدخول قبل الباركود */
     .entry-title {
       font-size: 22px;
       font-weight: 800;
@@ -139,7 +135,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* 2- الباركود شفاف (Transparent) */
     .qr-box {
       background: transparent;
       padding: 0;
@@ -156,7 +151,6 @@
       filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.7));
     }
 
-    /* 3- بيانات الضيف */
     .guest-info {
       margin-top: 14px;
       color: #ffffff;
@@ -176,7 +170,6 @@
       color: #ffffff;
     }
 
-    /* 4- عدد الضيوف */
     .guest-count { 
       font-size: 16px; 
       font-weight: 700; 
@@ -252,16 +245,13 @@
           rows.forEach((row) => {
             if (row && row[0]) {
               let name = row[0].toString().trim();
-              let count = 1;
+              let count = 1; // الافتراضي 1 إذا لم يُكتب شيء
 
-              if (row[1]) {
-                let parsed = parseInt(row[1]);
-                if (!isNaN(parsed)) {
-                  if (parsed >= 2) {
-                    count = 2;
-                  } else {
-                    count = 1;
-                  }
+              // --- 💡 التعديل الجوهري: قراءة أعداد الضيوف بلا أي قيود ---
+              if (row[1] !== undefined && row[1] !== null) {
+                let parsed = parseInt(row[1], 10);
+                if (!isNaN(parsed) && parsed > 0) {
+                  count = parsed; // قراءة العدد المكتوب بالكامل (1, 2, 3, 4, 5...)
                 }
               }
 
@@ -296,7 +286,10 @@
     function createCard(guestName, guestCount, index) {
       const container = document.getElementById('cards-container');
       const randomHex = Math.random().toString(36).substring(2, 7).toUpperCase();
+      
+      // تشفير كود الدعوة الحقيقي + عدد الضيوف داخل الباركود
       const uniqueCode = `INV-${randomHex}-${index}`;
+      const qrData = `${uniqueCode}|${guestCount}`; // يسهّل قراءة العدد على الماسح
       const cardId = `card-${index}`;
 
       const cardHtml = `
@@ -330,7 +323,7 @@
 
       new QRious({
         element: document.getElementById(`qr-${index}`),
-        value: uniqueCode,
+        value: qrData,
         size: 300,
         backgroundAlpha: 0,
         foreground: '#ffffff',
