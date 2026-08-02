@@ -111,9 +111,10 @@
       z-index: 1;
     }
 
+    /* التنسيق للبيانات فوق الصورة */
     .dynamic-overlay {
       position: absolute;
-      top: 42%;
+      top: 40%;
       left: 50%;
       transform: translate(-50%, -10%);
       width: 100%;
@@ -124,38 +125,60 @@
       text-align: center;
     }
 
+    /* 1- كلمة بطاقة الدخول قبل الباركود */
     .entry-title {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 800;
       color: #ffffff;
-      margin-bottom: 8px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      margin-bottom: 10px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+      letter-spacing: 0.5px;
     }
 
+    /* 2- الباركود بدون خلفية أو فريم (Transparent) */
     .qr-box {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 8px;
-      border-radius: 12px;
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      box-shadow: none;
     }
 
     .qr-box canvas {
-      width: 140px !important;
-      height: 140px !important;
+      width: 135px !important;
+      height: 135px !important;
+      filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.7));
     }
 
+    /* 3- بيانات الضيف والأسماء المنسحبة من الإكسل */
     .guest-info {
-      margin-top: 12px;
+      margin-top: 14px;
       color: #ffffff;
-      text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+      text-shadow: 0 2px 6px rgba(0,0,0,0.95);
     }
 
-    .guest-title { font-size: 18px; font-weight: 700; }
-    .guest-name { font-size: 22px; font-weight: 800; margin: 2px 0; }
-    .guest-count { font-size: 15px; font-weight: 700; }
+    .guest-title { 
+      font-size: 18px; 
+      font-weight: 700; 
+      opacity: 0.95;
+    }
+
+    .guest-name { 
+      font-size: 23px; 
+      font-weight: 800; 
+      margin: 3px 0;
+      color: #ffffff;
+    }
+
+    /* 4- عدد الضيوف (حد أقصى شخصين) */
+    .guest-count { 
+      font-size: 16px; 
+      font-weight: 700; 
+      margin-top: 2px;
+      color: #f1f1f1;
+    }
 
     @media print {
       body { background: white; padding: 0; }
@@ -167,22 +190,13 @@
 
   <div class="control-panel">
     <h3 style="color: #c9a24b; font-size: 20px;">✨ نظام توليد بطاقات الدعوة</h3>
-    <p style="font-size: 13px; color: #777; margin-top: 5px;">قم برفع صورة الخلفية وملف Excel لتوليد البطاقات</p>
-    
-    <!-- رفع خلفية جديدة اختيارياً -->
-    <div class="file-box" onclick="document.getElementById('bgFile').click()">
-      <span style="font-size: 24px;">🖼️</span>
-      <p id="bgStatus" style="color: #c9a24b; font-size: 13px; font-weight: bold; margin-top: 4px;">
-        اضغط لتغيير خلفية الدعوة (اختياري)
-      </p>
-      <input type="file" id="bgFile" accept="image/*" style="display:none" onchange="handleBgUpload(event)">
-    </div>
+    <p style="font-size: 13px; color: #777; margin-top: 5px;">ارفع ملف Excel لتوليد البطاقات فوراً</p>
 
     <!-- رفع ملف Excel -->
     <div class="file-box" onclick="document.getElementById('excelFile').click()">
       <span style="font-size: 28px;">📊</span>
       <p style="color: #c9a24b; font-size: 14px; font-weight: bold; margin-top: 6px;">اضغط هنا لرفع ملف Excel المدعوين</p>
-      <input type="file" id="excelFile" accept=".xlsx, .xls" style="display:none" onchange="handleExcelUpload(event)">
+      <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleExcelUpload(event)">
     </div>
 
     <button id="printBtn" class="btn" style="display: none;" onclick="window.print()">🖨️ طباعة / حفظ الكل (PDF)</button>
@@ -191,27 +205,10 @@
   <div id="cards-container"></div>
 
   <script>
-    // الصورة الافتراضية
-    let currentBase64Image = 'bg.jpg'; 
-    let cachedGuestsList = [];
+    // امتداد الصورة مطابق لما يوجد لديك في VS Code
+    let currentBase64Image = 'bg.jpeg'; 
 
-    // معالجة تغيير الخلفية وتحويلها إلى Base64 تلقائياً
-    function handleBgUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        currentBase64Image = e.target.result;
-        document.getElementById('bgStatus').innerText = "✅ تم تحميل الخلفية بنجاح!";
-        if (cachedGuestsList.length > 0) {
-          renderCards(cachedGuestsList);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // معالجة ملف الإكسل
+    // قراءة ومعالجة ملف الإكسل
     function handleExcelUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -228,10 +225,18 @@
           rows.forEach((row) => {
             if (row && row[0]) {
               let name = row[0].toString().trim();
-              let count = 1;
+              let count = 1; // الافتراضي شخص واحد
+
+              // التحقق من العمود الثاني لقراءة عدد الضيوف (حد أقصى شخصين فقط)
               if (row[1]) {
                 let parsed = parseInt(row[1]);
-                if (!isNaN(parsed) && parsed >= 1) count = parsed;
+                if (!isNaN(parsed)) {
+                  if (parsed >= 2) {
+                    count = 2; // حد أقصى شخصين فقط
+                  } else {
+                    count = 1;
+                  }
+                }
               }
 
               if (name !== "" && name.toLowerCase() !== "الاسم" && name.toLowerCase() !== "name") {
@@ -241,11 +246,10 @@
           });
 
           if (loadedGuests.length > 0) {
-            cachedGuestsList = loadedGuests;
             renderCards(loadedGuests);
             document.getElementById('printBtn').style.display = 'block';
           } else {
-            alert("لم يتم العثور على أسماء في العمود الأول.");
+            alert("لم يتم العثور على أسماء في العمود الأول لملف Excel.");
           }
         } catch(err) {
           alert("حدث خطأ أثناء قراءة ملف Excel.");
@@ -274,16 +278,19 @@
             <img src="${currentBase64Image}" class="bg-img" alt="Background" crossorigin="anonymous">
 
             <div class="dynamic-overlay">
+              <!-- 1. كلمة بطاقة الدخول قبل الباركود -->
               <div class="entry-title">بطاقة الدخول</div>
               
+              <!-- 2. الباركود بدون خلفية بيضاء (شفاف) -->
               <div class="qr-box">
                 <canvas id="qr-${index}"></canvas>
               </div>
 
+              <!-- 3 & 4. الاسم وعدد الضيوف -->
               <div class="guest-info">
                 <div class="guest-title">المكرم/ة</div>
                 <div class="guest-name">${guestName}</div>
-                <div class="guest-count">عدد المدعوين : ${guestCount}</div>
+                <div class="guest-count">عدد الضيوف : ${guestCount}</div>
               </div>
             </div>
 
@@ -297,16 +304,18 @@
 
       container.insertAdjacentHTML('beforeend', cardHtml);
 
+      // إنشاء الـ QR Code بخلفية شفافة (backgroundAlpha: 0)
       new QRious({
         element: document.getElementById(`qr-${index}`),
         value: uniqueCode,
         size: 300,
-        backgroundAlpha: 0,
-        foreground: '#000000',
+        backgroundAlpha: 0, // خلفية شفافة بالكامل
+        foreground: '#ffffff', // لون الباركود (أبيض ليبرز بشكل أنيق)
         level: 'H'
       });
     }
 
+    // تنزيل البطاقات بصيغة صورة PNG عالية الجودة
     function downloadAsImage(cardId, guestName) {
       const cardElement = document.getElementById(cardId);
       
@@ -322,7 +331,7 @@
         link.download = `دعوة_${guestName}.png`;
         link.click();
       }).catch(err => {
-        alert("تعذر حفظ الصورة، يرجى التأكد من رفع خلفية الصورة عبر الخيار في الأعلَى أولاً.");
+        alert("حدث خطأ أثناء حفظ البطاقة.");
       });
     }
   </script>
