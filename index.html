@@ -87,7 +87,7 @@
     align-items: center;
   }
 
-  /* البطاقة تعتمد على الصورة bg.jpg كخلفية متناسقة ومطابقة تماماً */
+  /* استخدام الصورة مباشرة ورسم العناصر فوقها */
   .card {
     position: relative;
     width: 450px;
@@ -102,13 +102,22 @@
     align-items: center;
   }
 
-  /* تراكب الباركود والمعلومات في المنتصف لتجنب تغطية نصوص الصورة */
+  .bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
   .dynamic-overlay {
     position: absolute;
     top: 38%;
     left: 50%;
     transform: translate(-50%, -10%);
     width: 100%;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -144,21 +153,9 @@
     text-shadow: 0 2px 5px rgba(0,0,0,0.9);
   }
 
-  .guest-title { 
-    font-size: 18px; 
-    font-weight: 700; 
-  }
-
-  .guest-name { 
-    font-size: 20px; 
-    font-weight: 800; 
-  }
-
-  .guest-count { 
-    font-size: 15px; 
-    font-weight: 700; 
-    margin-top: 2px; 
-  }
+  .guest-title { font-size: 18px; font-weight: 700; }
+  .guest-name { font-size: 20px; font-weight: 800; }
+  .guest-count { font-size: 15px; font-weight: 700; margin-top: 2px; }
 
   @media print{
     body{ background:white; padding:0; }
@@ -215,7 +212,6 @@
           if (loadedGuests.length > 0) {
             renderCards(loadedGuests);
             document.getElementById('printBtn').style.display = 'block';
-            alert(`تم توليد ${loadedGuests.length} بطاقة بنجاح!`);
           } else {
             alert("لم يتم العثور على أسماء في العمود الأول.");
           }
@@ -243,7 +239,9 @@
       const cardHtml = `
         <div class="card-wrapper">
           <div class="card" id="${cardId}">
-            
+            <!-- صورة الخلفية الفاخرة مباشرة -->
+            <img src="https://i.ibb.co/68H428X/wedding-bg.jpg" class="bg-img" alt="Background" crossorigin="anonymous">
+
             <div class="dynamic-overlay">
               <div class="entry-title">بطاقة الدخول</div>
               
@@ -283,6 +281,7 @@
       html2canvas(cardElement, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: null
       }).then(canvas => {
         const image = canvas.toDataURL("image/png");
