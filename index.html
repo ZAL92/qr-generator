@@ -11,6 +11,9 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- مكتبات تنزيل جميع الصور في ملف ZIP مضغوط دفعة واحدة -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -60,6 +63,11 @@
       cursor: pointer;
       width: 100%;
       margin-top: 10px;
+    }
+
+    .btn-zip {
+      background: linear-gradient(135deg, #2d6a4f, #1b4332);
+      color: #ffffff;
     }
 
     .download-card-btn {
@@ -189,7 +197,7 @@
     <h3 style="color: #c9a24b; font-size: 20px;">✨ نظام توليد بطاقات الدعوة</h3>
     <p style="font-size: 13px; color: #777; margin-top: 5px;">اختر خلفية وارفع ملف Excel لتوليد البطاقات</p>
 
-    <!-- خيار رفع وخلفية الدعوة -->
+    <!-- رفع خلفية -->
     <div class="file-box" onclick="document.getElementById('bgFile').click()">
       <span style="font-size: 24px;">🖼️</span>
       <p id="bgStatus" style="color: #c9a24b; font-size: 13px; font-weight: bold; margin-top: 4px;">
@@ -205,7 +213,9 @@
       <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleExcelUpload(event)">
     </div>
 
-    <button id="printBtn" class="btn" style="display: none;" onclick="window.print()">🖨️ طباعة / حفظ الكل (PDF)</button>
+    <!-- أزرار التحميل -->
+    <button id="downloadZipBtn" class="btn btn-zip" style="display: none;" onclick="downloadAllAsZip()">📦 تحميل جميع البطاقات صور (ZIP)</button>
+    <button id="printBtn" class="btn" style="display: none; background: #444;" onclick="window.print()">🖨️ طباعة الصفحة (PDF)</button>
   </div>
 
   <div id="cards-container"></div>
@@ -263,6 +273,7 @@
           if (loadedGuests.length > 0) {
             cachedGuestsList = loadedGuests;
             renderCards(loadedGuests);
+            document.getElementById('downloadZipBtn').style.display = 'block';
             document.getElementById('printBtn').style.display = 'block';
           } else {
             alert("لم يتم العثور على أسماء في العمود الأول لملف Excel.");
@@ -284,8 +295,6 @@
 
     function createCard(guestName, guestCount, index) {
       const container = document.getElementById('cards-container');
-      
-      // 💡 التعديل الجوهري هنا: تضمين اسم الضيف الفعلي مباشرة بدلاً من كود INV العشوائي
       const qrData = `${guestName}|${guestCount}`; 
       const cardId = `card-${index}`;
 
@@ -344,6 +353,33 @@
         link.click();
       }).catch(err => {
         alert("حدث خطأ أثناء حفظ البطاقة.");
+      });
+    }
+
+    // 💡 دالة جديدة لتجميع كافة الـ 140 صورة في ملف ZIP واحد وتنزل فورا!
+    async function downloadAllAsZip() {
+      const btn = document.getElementById('downloadZipBtn');
+      btn.innerText = "⏳ جاري تحويل الصور وتجميع الملف...";
+      btn.disabled = true;
+
+      const zip = new JSZip();
+      const folder = zip.folder("بطاقات_الدعوة");
+
+      for (let i = 0; i < cachedGuestsList.length; i++) {
+        const guest = cachedGuestsList[i];
+        const cardElement = document.getElementById(`card-${i + 1}`);
+
+        if (cardElement) {
+          const canvas = await html2canvas(cardElement, { scale: 1.5, useCORS: true, allowTaint: true });
+          const imgData = canvas.toDataURL("image/png").split(',')[1];
+          folder.file(`دعوة_${guest.name}.png`, imgData, { base64: true });
+        }
+      }
+
+      zip.generateAsync({ type: "blob" }).then(function(content) {
+        saveAs(content, "جميع_بطاقات_الدعوة.zip");
+        btn.innerText = "📦 تحميل جميع البطاقات صور (ZIP)";
+        btn.disabled = false;
       });
     }
   </script>
