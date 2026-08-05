@@ -11,7 +11,6 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- مكتبات تنزيل جميع الصور في ملف ZIP مضغوط دفعة واحدة -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
@@ -134,13 +133,16 @@
       text-align: center;
     }
 
+    /* 💡 التعديل هنا: منع انفصال الحروف وتثبيت محاذاة النص العربي */
     .entry-title {
       font-size: 22px;
       font-weight: 800;
       color: #ffffff;
       margin-bottom: 10px;
       text-shadow: 0 2px 6px rgba(0,0,0,0.9);
-      letter-spacing: 0.5px;
+      letter-spacing: normal !important;
+      word-spacing: normal !important;
+      direction: rtl;
     }
 
     .qr-box {
@@ -163,12 +165,14 @@
       margin-top: 14px;
       color: #ffffff;
       text-shadow: 0 2px 6px rgba(0,0,0,0.95);
+      direction: rtl;
     }
 
     .guest-title { 
       font-size: 18px; 
       font-weight: 700; 
       opacity: 0.95;
+      letter-spacing: normal !important;
     }
 
     .guest-name { 
@@ -176,6 +180,7 @@
       font-weight: 800; 
       margin: 3px 0;
       color: #ffffff;
+      letter-spacing: normal !important;
     }
 
     .guest-count { 
@@ -183,6 +188,7 @@
       font-weight: 700; 
       margin-top: 2px;
       color: #f1f1f1;
+      letter-spacing: normal !important;
     }
 
     @media print {
@@ -356,7 +362,6 @@
       });
     }
 
-    // 💡 دالة جديدة لتجميع كافة الـ 140 صورة في ملف ZIP واحد وتنزل فورا!
     async function downloadAllAsZip() {
       const btn = document.getElementById('downloadZipBtn');
       btn.innerText = "⏳ جاري تحويل الصور وتجميع الملف...";
